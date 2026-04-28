@@ -1,0 +1,124 @@
+@{
+    ViewData["Title"] = "Cálculo de Préstamos";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow-sm border">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0">Formulario de Cotización</h5>
+            </div>
+            <div class="card-body p-4">
+                <form id="loanForm">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Fecha de Nacimiento:</label>
+                            <input type="date" class="form-control" id="fechaNacimiento" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Monto (RD$):</label>
+                            <input type="number" class="form-control" id="monto" placeholder="0.00" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-bold">Plazo en Meses:</label>
+                            <select class="form-select" id="meses" required>
+                                <option value="" disabled selected>-- Seleccione --</option>
+                                <option value="3">3 Meses</option>
+                                <option value="6">6 Meses</option>
+                                <option value="9">9 Meses</option>
+                                <option value="12">12 Meses</option>
+                            </select>
+                        </div>
+                        <div class="col-12 text-end pt-2">
+                            <button type="submit" class="btn btn-primary px-4">Calcular Ahora</button>
+                        </div>
+                    </div>
+                </form>
+
+                <div id="resultBox" class="mt-4 d-none">
+                    <hr />
+                    <div id="statusMessage" class="alert mb-3"></div>
+                    
+                    <div id="detailsTable" class="d-none">
+                        <div class="bg-light p-3 border mb-3 text-center">
+                            <span class="d-block text-muted small">Cálculo de Cuota Mensual</span>
+                            <h3 id="monthlyValue" class="mb-0 text-primary fw-bold"></h3>
+                        </div>
+
+                        <table class="table table-bordered table-striped table-sm mt-3">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Mes</th>
+                                    <th>Monto de Cuota</th>
+                                    <th>Balance</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card { border-radius: 4px; }
+    .btn { border-radius: 4px; }
+    .form-control, .form-select { border-radius: 4px; }
+    .alert { border-radius: 4px; }
+</style>
+
+@@section Scripts {
+    <script>
+        const form = document.getElementById('loanForm');
+        const resultBox = document.getElementById('resultBox');
+        const detailsTable = document.getElementById('detailsTable');
+        const statusMsg = document.getElementById('statusMessage');
+        const monthlyVal = document.getElementById('monthlyValue');
+        const tableBody = document.getElementById('tableBody');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const data = {
+                fechaNacimiento: document.getElementById('fechaNacimiento').value,
+                monto: parseFloat(document.getElementById('monto').value),
+                meses: parseInt(document.getElementById('meses').value)
+            };
+
+            try {
+                const response = await fetch('/api/calculo/cuota', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                const res = await response.json();
+                resultBox.classList.remove('d-none');
+                
+                if (res.exito) {
+                    statusMsg.className = "alert alert-success";
+                    statusMsg.innerText = res.mensaje;
+                    monthlyVal.innerText = "$" + res.cuota.toFixed(2);
+                    
+                    tableBody.innerHTML = res.tablaAmortizacion.map(i => `
+                        <tr>
+                            <td>${i.numeroCuota}</td>
+                            <td>$${i.cuota.toFixed(2)}</td>
+                            <td>$${i.balanceRestante.toFixed(2)}</td>
+                        </tr>
+                    `).join('');
+                    detailsTable.classList.remove('d-none');
+                } else {
+                    statusMsg.className = "alert alert-warning";
+                    statusMsg.innerText = res.mensaje;
+                    detailsTable.classList.add('d-none');
+                }
+            } catch (err) {
+                statusMsg.className = "alert alert-danger";
+                statusMsg.innerText = "Error en la conexión.";
+            }
+        });
+    </script>
+}
