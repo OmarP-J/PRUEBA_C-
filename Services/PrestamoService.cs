@@ -42,9 +42,6 @@ namespace CalculadoraPrestamosApp.Services
             if (!tasa.HasValue)
                 return new PrestamoResponse { Exito = false, Mensaje = "No hay tasa definida para esta edad." };
 
-            // Cálculo de cuota simple (Interés global / meses)
-            // Opcional: Podríamos usar la fórmula de amortización francesa si se prefiere.
-            // Según la lógica previa: cuota = (monto * tasa) / meses
             decimal cuota = (request.Monto * tasa.Value) / request.Meses;
             cuota = Math.Round(cuota, 2);
 
@@ -55,14 +52,12 @@ namespace CalculadoraPrestamosApp.Services
                 Cuota = cuota
             };
 
-            // Generar tabla de amortización (Reglas estrictas)
             decimal montoTotal = request.Monto * tasa.Value;
             decimal balance = montoTotal;
             for (int i = 1; i <= request.Meses; i++)
             {
                 decimal cuotaActual = cuota;
                 
-                // Ajustar la última cuota para evitar errores de redondeo
                 if (i == request.Meses)
                 {
                     cuotaActual = Math.Round(balance, 2);

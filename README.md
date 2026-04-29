@@ -48,10 +48,11 @@ CalculadoraPrestamosApp/
 - SQL Server (Express o superior)
 
 ### 2. Base de datos
-Ejecutar el script SQL para crear la base de datos `DB_Credito` con las tablas `EdadTasa`, `PlazoMeses` y `LogConsultas`, y los procedimientos almacenados:
-- `usp_ObtenerTasaPorEdad`
-- `usp_ValidarPlazo`
-- `usp_InsertarLogConsulta`
+En la raíz del proyecto encontrarás el archivo **`DB_Credito_Script.sql`**. Solo debes abrirlo en SQL Server Management Studio (SSMS) o Azure Data Studio y ejecutarlo completo. Ese script crea y configura todo automáticamente:
+- Crea la base de datos `DB_Credito`.
+- Genera las tablas `EdadTasa`, `PlazoMeses` y `LogConsultas`.
+- Inserta los datos iniciales obligatorios.
+- Crea todos los procedimientos almacenados necesarios (`usp_ObtenerTasaPorEdad`, `usp_ValidarPlazo`, `usp_InsertarLogConsulta` y `usp_ObtenerPlazos`).
 
 ### 3. Cadena de conexión
 Editar `appsettings.json` con el nombre de tu servidor SQL:
