@@ -1,82 +1,131 @@
-# 🏦 Calculadora de Préstamos Premium
+# 🏦 Calculadora de Préstamos — ASP.NET Core MVC
 
-Este proyecto es una aplicación web moderna desarrollada con **ASP.NET Core 9.0** que permite a los usuarios calcular cuotas de préstamos basadas en su edad, monto solicitado y plazo en meses. La arquitectura sigue un patrón de **3 capas** (UI/Controllers, Services, Data) y combina **MVC** con una **Web API** robusta.
+Aplicación web para calcular cuotas de préstamos personales basándose en la edad del solicitante, el monto y el plazo. Desarrollada con **ASP.NET Core 9.0** siguiendo una arquitectura de **3 capas** que combina **MVC** con una **Web API REST**.
 
-## 🚀 Características
-
-- **Interfaz de Usuario Premium**: Diseño elegante con Glassmorphism, animaciones fluidas y totalmente responsive.
-- **Validación por Edad**: El sistema aplica reglas de negocio basadas en la edad del solicitante (18-25 años).
-- **Tasas Dinámicas**: Las tasas de interés se ajustan automáticamente según el rango de edad.
-- **Tabla de Amortización**: Visualización detallada de los pagos mensuales y el balance restante.
-- **Arquitectura Limpia**: Separación clara de responsabilidades entre lógica de negocio y acceso a datos.
+---
 
 ## 🛠️ Tecnologías
 
-- **Backend**: .NET 9.0 (ASP.NET Core MVC + Web API)
-- **Frontend**: HTML5, Vanilla CSS3 (Glassmorphism), JavaScript (Fetch API)
-- **Framework de Estilo**: Bootstrap 5.3 (incluido mediante CDN/Assets estáticos)
-- **Patrones**: Repository Pattern, Dependency Injection (DI)
+| Capa | Tecnología |
+|------|------------|
+| Backend | C# / ASP.NET Core 9.0 (MVC + Web API) |
+| Base de datos | SQL Server (con Procedimientos Almacenados) |
+| Frontend | HTML5, Bootstrap 5, JavaScript (Fetch API) |
+| Patrones | Repository Pattern, Dependency Injection |
 
-## 📋 Requisitos Previos
+---
 
-- [.NET 9.0 SDK](https://dotnet.microsoft.com/download/dotnet/9.0) instalado en su sistema.
-- Un editor de código como VS Code o Visual Studio 2022.
+## 📂 Estructura del Proyecto
 
-## ⚙️ Configuración y Ejecución
-
-### 1. Clonar o descargar el proyecto
-Si ya tienes los archivos en tu carpeta:
-
-### 2. Restaurar dependencias
-Abre una terminal en la raíz del proyecto y ejecuta:
-```bash
-dotnet restore
+```
+CalculadoraPrestamosApp/
+├── Controllers/
+│   ├── HomeController.cs        # Sirve la vista principal (MVC)
+│   └── CalculoController.cs     # Endpoint API de cálculo
+├── Services/
+│   └── PrestamoService.cs       # Lógica de negocio y reglas de validación
+├── Data/
+│   └── PrestamoRepository.cs    # Acceso a datos vía Procedimientos Almacenados
+├── Models/
+│   ├── Prestamo.cs              # PrestamoRequest, PrestamoResponse, CuotaAmortizacion
+│   └── ErrorViewModel.cs
+├── Views/
+│   ├── Home/Index.cshtml        # Interfaz de usuario
+│   └── Shared/
+│       ├── _Layout.cshtml
+│       └── Error.cshtml
+├── wwwroot/                     # Archivos estáticos (Bootstrap, jQuery, CSS)
+├── appsettings.json             # Cadena de conexión a SQL Server
+└── Program.cs                   # Configuración de servicios y middleware
 ```
 
-### 3. Compilar el proyecto
-```bash
-dotnet build
+---
+
+## ⚙️ Configuración
+
+### 1. Prerrequisitos
+- [.NET 9.0 SDK](https://dotnet.microsoft.com/download/dotnet/9.0)
+- SQL Server (Express o superior)
+
+### 2. Base de datos
+Ejecutar el script SQL para crear la base de datos `DB_Credito` con las tablas `EdadTasa`, `PlazoMeses` y `LogConsultas`, y los procedimientos almacenados:
+- `usp_ObtenerTasaPorEdad`
+- `usp_ValidarPlazo`
+- `usp_InsertarLogConsulta`
+
+### 3. Cadena de conexión
+Editar `appsettings.json` con el nombre de tu servidor SQL:
+```json
+"ConnectionStrings": {
+  "DefaultConnection": "Server=TU_SERVIDOR\\SQLEXPRESS;Database=DB_Credito;Integrated Security=true;TrustServerCertificate=True;"
+}
 ```
 
 ### 4. Ejecutar la aplicación
 ```bash
+dotnet restore
 dotnet run
 ```
-La aplicación estará disponible en `http://localhost:5000` (o el puerto indicado en la consola).
 
-## 📂 Estructura del Proyecto
+La aplicación estará disponible en `https://localhost:{puerto}`.
 
-- **/Controllers**: 
-  - `HomeController`: Maneja la navegación y las vistas MVC.
-  - `CalculoController`: Controlador API que procesa los cálculos de préstamos.
-- **/Services**: 
-  - `PrestamoService`: Contiene la lógica de negocio, reglas de edad y cálculos matemáticos.
-- **/Data**: 
-  - `PrestamoRepository`: Encargado del acceso a datos (actualmente configurado como Mock para pruebas rápidas).
-- **/Models**: 
-  - Definición de clases para solicitudes, respuestas y tablas de amortización.
-- **/Views**: 
-  - Interfaz de usuario principal.
+---
 
-## 🔌 API Endpoints
+## 🔌 API Endpoint
 
-### Calcular Cuota
-- **URL**: `/api/calculo/cuota`
-- **Método**: `POST`
-- **Body**:
+### `POST /api/calculo/cuota`
+
+**Body (JSON):**
 ```json
 {
-  "fechaNacimiento": "1995-05-15",
+  "fechaNacimiento": "2000-05-15",
   "monto": 50000,
   "meses": 12
 }
 ```
 
-## 📝 Reglas de Negocio Implementadas
-- **Edad < 18**: El sistema deniega la solicitud.
-- **Edad 18-25**: El sistema permite el cálculo con tasas específicas.
-- **Edad > 25**: El sistema solicita evaluación en sucursal.
-- **Plazos permitidos**: 3, 6, 9 y 12 meses.
+**Respuesta exitosa:**
+```json
+{
+  "exito": true,
+  "mensaje": "Cálculo exitoso",
+  "cuota": 4375.00,
+  "tablaAmortizacion": [...]
+}
+```
 
 ---
-© 2026 Sistema de Gestión de Préstamos Personales.
+
+## 📋 Reglas de Negocio
+
+### Fórmula de cálculo
+```
+Cuota = (Monto × Tasa) / Cantidad de meses
+```
+
+### Tasas por edad
+| Edad | Tasa |
+|------|------|
+| 18   | 1.20 |
+| 19   | 1.18 |
+| 20   | 1.16 |
+| 21   | 1.14 |
+| 22   | 1.12 |
+| 23   | 1.10 |
+| 24   | 1.08 |
+| 25   | 1.05 |
+
+### Plazos permitidos
+`3`, `6`, `9` y `12` meses.
+
+### Validaciones
+- **Edad < 18:** *"Lo sentimos, aún no cuenta con la edad para solicitar este producto."*
+- **Edad > 25:** *"Favor pasar por una de nuestras sucursales para evaluar su caso."*
+- **Plazo inválido:** Solo se aceptan los valores de la tabla anterior.
+
+### Registro de consultas
+Cada cálculo exitoso queda registrado en la tabla `LogConsultas` con: Id, Fecha, Edad, Monto, Meses, Valor Cuota e IP del cliente.
+
+---
+
+© 2026 Sistema de Gestión de Préstamos Personales

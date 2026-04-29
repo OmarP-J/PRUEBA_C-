@@ -55,17 +55,27 @@ namespace CalculadoraPrestamosApp.Services
                 Cuota = cuota
             };
 
-            // Generar tabla de amortización (opcional pero profesional)
-            decimal balance = request.Monto;
+            // Generar tabla de amortización (Reglas estrictas)
+            decimal montoTotal = request.Monto * tasa.Value;
+            decimal balance = montoTotal;
             for (int i = 1; i <= request.Meses; i++)
             {
+                decimal cuotaActual = cuota;
+                
+                // Ajustar la última cuota para evitar errores de redondeo
+                if (i == request.Meses)
+                {
+                    cuotaActual = Math.Round(balance, 2);
+                }
+
+                balance -= cuotaActual;
+
                 response.TablaAmortizacion.Add(new CuotaAmortizacion
                 {
                     NumeroCuota = i,
-                    Cuota = cuota,
-                    BalanceRestante = Math.Max(0, Math.Round(balance - (request.Monto / request.Meses), 2))
+                    Cuota = cuotaActual,
+                    BalanceRestante = Math.Max(0, Math.Round(balance, 2))
                 });
-                balance -= (request.Monto / request.Meses);
             }
 
             _repo.InsertarLog(edad, request.Monto, request.Meses, cuota, ipCliente);
